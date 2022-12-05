@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Today!</title>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        background-color: #e1dad2;
+      }
+      .heading {
+        display: flex;
+        justify-content: space-between;
+        font-family: "Arial", Courier, monospace;
+        background-color: #e1dad2;
+        width: 100%;
+        color: white;
+        padding: 10px;
+        flex-wrap: wrap;
+      }
+      p.heading-text {
+        font-weight: bold;
+        font-size: 30px;
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        padding: 5px;
+        color:#194a50;
+      }
+      .footer {
+        position: fixed;
+        bottom: 0;
+        color: #194a50;
+        background-color: #d37556;
+        width: 100%;
+        padding: 9px;
+        text-align: right;
+      }
+      .mid {
+        display: flex;
+        justify-content: left;
+
+        padding: 10px;
+      }
+      .location {
+        padding: 5px;
+        border: 3px solid #d37556;
+        border-radius: 5px;
+        background-color:#d37556 ;
+        color:#194a50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #temp {
+        font-size: 70px;
+      }
+      .location > span {
+        margin-left: 5px;
+      }
+      .mid__row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .mid__row--centered {
+        justify-content: flex-end;
+      }
+      .mid__row--centered > div > img {
+        margin-right: 5px;
+      }
+      .content {
+        background-color: #d8a28c;
+        border: 3px solid #d8a28c;
+        color:#194a50;
+        border-radius: 5px;
+        width: 90%;
+        max-width: 400px;
+        padding: 20px;
+      }
+      .convertButton {
+        padding: 10px;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .convertButton > button {
+        margin-left: 10px;
+      }
+      .sun {
+        display: flex;
+        align-items: center;
+        color:#194a50;
+      }
+      .selected {
+        border: 2px solid rgb(183, 206, 161) !important;
+      }
+      .accessTime {
+        margin-left: 10px;
+      }
+    </style>
+    <!-- Compiled and minified CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div class="heading">
+      <div class="heading__left">
+        <p class="heading-text">The Weather Channel</p>
+        <div class="location">
+          <i class="tiny material-icons">location_on</i>
+
+          <span> <span id="city"></span>, <span id="country"></span> </span>
+          <i class="tiny material-icons accessTime">access_time</i>
+          <span id="currentTime"></span>
+        </div>
+      </div>
+
+      <div class="heading__right">
+        <div class="convertButton">
+          <button
+            id="convertToF"
+            class="btn-floating waves-effect waves-light amber"
+          >
+            °F
+          </button>
+
+          <button
+            id="convertToC"
+            class="btn-floating waves-effect waves-light green selected"
+          >
+            °C
+          </button>
+        </div>
+
+        <div class="sun">
+          <img src="images/rise.png" width="40px" height="40px" />
+          <span id="sunrise"></span>
+
+          <img src="images/set.png" width="40px" height="40px" />
+          <span id="sunset"></span>
+        </div>
+      </div>
+    </div>
+    <div class="mid">
+      <div class="content">
+        <div class="mid__row"><div id="temp"></div></div>
+        <div class="mid__row mid__row--centered">
+          <div>
+            <img id="weatherIcon" />
+          </div>
+          <div>
+            <span id="weatherCondition"></span>
+          </div>
+        </div>
+
+        <div class="mid__row">
+          <div>Feels Like:</div>
+          <div id="feelTemp"></div>
+        </div>
+        <div class="mid__row">
+          <div>Min Temperature:</div>
+          <div id="minTemp"></div>
+        </div>
+        <div class="mid__row">
+          <div>Max Temperature:</div>
+          <div id="maxTemp"></div>
+        </div>
+        <div class="mid__row">
+          <div>Pressure:</div>
+          <div id="pressure"></div>
+        </div>
+        <div class="mid__row">
+          <div>Humidity:</div>
+          <div id="humidity"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-copyright">© 2021 Priya</div>
+    </footer>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        //variables
+        let pos = {
+          latitude: 37.3057,
+          longitude: -89.5181,
+        };
+        let unit = "°C";
+        let iconUrl;
+        let buttons = document.querySelectorAll(".convertButton button");
+
+        //methods
+        const updateWeatherInfo = () => {
+          fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${pos.latitude}&lon=${pos.longitude}&appid=38ac9123d59fb0b8574ce25ee74ce0c0
+        `
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              console.log(data);
+              document.getElementById("temp").innerHTML =
+                unit === "°C"
+                  ? (data.main.temp - 273.15).toFixed(2) + unit
+                  : (((data.main.temp - 273.15) * 9) / 5 + 32).toFixed(2) +
+                    unit;
+              document.getElementById("feelTemp").innerHTML =
+                unit === "°C"
+                  ? (data.main.feels_like - 273.15).toFixed(2) + unit
+                  : (((data.main.feels_like - 273.15) * 9) / 5 + 32).toFixed(
+                      2
+                    ) + unit;
+              document.getElementById("minTemp").innerHTML =
+                unit === "°C"
+                  ? (data.main.temp_min - 273.15).toFixed(2) + unit
+                  : (((data.main.temp_min - 273.15) * 9) / 5 + 32).toFixed(2) +
+                    unit;
+              document.getElementById("maxTemp").innerHTML =
+                unit === "°C"
+                  ? (data.main.temp_max - 273.15).toFixed(2) + unit
+                  : (((data.main.temp_max - 273.15) * 9) / 5 + 32).toFixed(2) +
+                    unit;
+              document.getElementById("country").innerHTML = data.sys.country;
+              document.getElementById("sunrise").innerHTML = new Date(
+                data.sys.sunrise * 1000
+              ).toLocaleTimeString();
+
+              document.getElementById("sunset").innerHTML = new Date(
+                data.sys.sunset * 1000
+              ).toLocaleTimeString();
+              document.getElementById("city").innerHTML = data.name;
+              document.getElementById("pressure").innerHTML =
+                data.main.pressure + " hPa";
+              document.getElementById("humidity").innerHTML =
+                data.main.humidity + "%";
+              document.getElementById("weatherCondition").innerHTML =
+                data.weather[0].description;
+              document.getElementById(
+                "weatherIcon"
+              ).src = `http://openweathermap.org/img/wn/${data.weather[0].icon}.png`;
+            });
+        };
+        const getUserLocation = () => {
+          const success = (p) => {
+            console.log(p);
+            pos.latitude = p.coords.latitude;
+            pos.longitude = p.coords.longitude;
+            updateWeatherInfo();
+          };
+          const error = (err) => {
+            console.log(err);
+          };
+          navigator.geolocation.getCurrentPosition(success, error);
+        };
+        const convertToFahrenheit = () => {
+          unit = "°F";
+          buttons[0].classList.remove("amber");
+          buttons[0].classList.add("green");
+          buttons[1].classList.remove("green");
+          buttons[1].classList.add("amber");
+          buttons[0].classList.add("selected");
+          buttons[1].classList.remove("selected");
+          updateWeatherInfo();
+        };
+
+        const updateDateTime = () => {
+          var dt = new Date();
+          document.getElementById(
+            "currentTime"
+          ).innerHTML = dt.toLocaleString();
+          setTimeout(updateDateTime, 1000);
+        };
+
+        const convertToCelcius = () => {
+          unit = "°C";
+          buttons[1].classList.remove("amber");
+          buttons[1].classList.add("green");
+          buttons[0].classList.remove("green");
+          buttons[0].classList.add("amber");
+          buttons[0].classList.remove("selected");
+          buttons[1].classList.add("selected");
+          updateWeatherInfo();
+        };
+
+        //Event listeners
+        document
+          .getElementById("convertToF")
+          .addEventListener("click", convertToFahrenheit);
+        document
+          .getElementById("convertToC")
+          .addEventListener("click", convertToCelcius);
+        //script
+        getUserLocation();
+        updateDateTime();
+      });
+    </script>
+  </body>
+</html>
